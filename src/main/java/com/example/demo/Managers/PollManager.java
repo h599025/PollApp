@@ -2,6 +2,8 @@ package com.example.demo.Managers;
 
 import com.example.demo.Exceptions.*;
 import com.example.demo.Models.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -20,11 +22,24 @@ public class PollManager {
     private Integer nextVoteId = 0;
     private Integer nextVoteOptionId = 0;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public User save(User user) {
+        if (users.containsKey(user.getUsername())) {
+            throw new IllegalArgumentException("Username '" + user.getUsername() + "' is already taken.");
+        }
+        users.put(user.getUsername(), user);
+        return user;
+    }
+
     // User CRUDs
     public User createUser(User user) {
         if (users.containsKey(user.getUsername())) {
             throw new UserNotFoundException("Username '" + user.getUsername() + "' is already taken.");
         }
+        // Hash the password before saving the user
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         users.put(user.getUsername(), user);
         return user;
     }

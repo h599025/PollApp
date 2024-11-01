@@ -11,17 +11,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+//@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/users")
 public class UserController {
 
     @Autowired
     private PollManager repo;
 
-    @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User createdUser = repo.createUser(user);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    @PostMapping()
+    public ResponseEntity<Void> registerUser(@RequestBody User user) {
+        repo.createUser(user);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @GetMapping("/{username}")
