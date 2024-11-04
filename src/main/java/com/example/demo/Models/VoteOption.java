@@ -1,32 +1,48 @@
 package com.example.demo.Models;
 
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "vote_options")
 public class VoteOption {
 
+    @Id
     private Integer voteOptionId;
-    private Integer pollId;
+
+    @ManyToOne
+    @JoinColumn(name = "pollId", nullable = false)
+    private Poll poll;
+
     private String caption;
     private Integer presentationOrder;
-    private List<Vote> votes;
 
-    public VoteOption(Integer pollId, String caption, Integer presentationOrder) {
-        this.pollId = pollId;
+    @OneToMany(mappedBy = "voteOption", cascade = CascadeType.ALL)
+    private List<Vote> votes = new ArrayList<>();
+
+    public VoteOption() {}
+    public VoteOption(Poll poll, String caption, Integer presentationOrder) {
+        this.poll = poll;
         this.caption = caption;
         this.presentationOrder = presentationOrder;
-        this.votes = new ArrayList<>();
     }
 
-    public Integer getVoteOptionId() { return voteOptionId; }
+    public Integer getVoteOptionId() {
+        return voteOptionId;
+    }
 
     public void setVoteOptionId(Integer voteOptionId) {
         this.voteOptionId = voteOptionId;
     }
 
-    public Integer getPollId() { return pollId; }
+    public Poll getPoll() {
+        return poll;
+    }
 
-    public void setPollId(Integer pollId) { this.pollId = pollId; }
+    public void setPoll(Poll poll) {
+        this.poll = poll;
+    }
 
     public String getCaption() {
         return caption;
@@ -44,6 +60,12 @@ public class VoteOption {
         this.presentationOrder = presentationOrder;
     }
 
-    public List<Vote> getVotes() { return votes; }
+    public List<Vote> getVotes() {
+        return votes;
+    }
+
+    public void setVotes(List<Vote> votes) {
+        this.votes = votes;
+    }
 }
 

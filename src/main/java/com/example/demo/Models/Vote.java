@@ -1,35 +1,43 @@
 package com.example.demo.Models;
 
+import jakarta.persistence.*;
 import java.time.Instant;
 
+@Entity
+@Table(name = "votes")
 public class Vote {
 
+    @Id
     private Integer voteId;
-    private final String username;
-    private final Integer pollId;
-    private Integer voteOptionId;
+
+    private String username;
+    private Integer pollId;
+
+    @ManyToOne
+    @JoinColumn(name = "vote_option_id", nullable = false)
+    private VoteOption voteOption;
+
     private Instant publishedAt;
 
-    public Vote(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
+    public Vote() {}
+    public Vote(String username, Integer pollId, VoteOption voteOption, Instant publishedAt) {
         this.username = username;
         this.pollId = pollId;
-        this.voteOptionId = voteOptionId;
+        this.voteOption = voteOption;
         this.publishedAt = publishedAt;
     }
 
-    public Integer getVoteId() {
-        return voteId;
-    }
+    public Integer getVoteId() { return voteId; }
 
     public void setVoteId(Integer voteId) { this.voteId = voteId; }
+
+    public VoteOption getVoteOption() { return voteOption; }
+
+    public void setVoteOption(VoteOption voteOption) { this.voteOption = voteOption; }
 
     public String getUsername() { return username; }
 
     public Integer getPollId() { return pollId; }
-
-    public Integer getVoteOptionId() { return voteOptionId; }
-
-    public Integer setVoteOptionId(Integer voteOptionId) { return this.voteOptionId = voteOptionId; }
 
     public Instant getPublishedAt() {
         return publishedAt;

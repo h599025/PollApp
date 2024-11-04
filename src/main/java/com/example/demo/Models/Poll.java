@@ -1,24 +1,33 @@
 package com.example.demo.Models;
 
+import jakarta.persistence.*;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "polls")
 public class Poll {
 
+    @Id
     private Integer pollId;
-    private final String creatorUsername;
+
+    private String creatorUsername;
     private String question;
-    private List<VoteOption> voteOptions;
+
+    @OneToMany(mappedBy = "poll", cascade = CascadeType.ALL)
+    private List<VoteOption> voteOptions = new ArrayList<>();
+
     private Instant publishedAt;
     private Instant validUntil;
 
+    public Poll() {}
     public Poll(String creatorUsername, String question, Instant publishedAt, Instant validUntil) {
         this.creatorUsername = creatorUsername;
         this.question = question;
         this.publishedAt = publishedAt;
         this.validUntil = validUntil;
-        this.voteOptions = new ArrayList<>();
     }
 
     public Integer getPollId() {

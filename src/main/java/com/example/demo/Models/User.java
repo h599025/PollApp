@@ -1,13 +1,25 @@
 package com.example.demo.Models;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "users")
 public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Integer id;
 
     private String firstName;
     private String lastName;
+
+    @Column(unique = true)
     private String username;
+
     private String email;
     private String password;
 
+    public User() {}
     public User(String firstName, String lastName, String username, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -15,6 +27,8 @@ public class User {
         this.email = email;
         this.password = password;
     }
+
+    public Integer getId() { return id; }
 
     public String getFirstName() {
         return firstName;

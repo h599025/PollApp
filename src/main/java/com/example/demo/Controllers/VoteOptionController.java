@@ -1,5 +1,6 @@
 package com.example.demo.Controllers;
 
+import com.example.demo.Exceptions.PollNotFoundException;
 import com.example.demo.Exceptions.VoteOptionNotFoundException;
 import com.example.demo.Managers.PollManager;
 import com.example.demo.Models.VoteOption;
@@ -11,17 +12,21 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-//@CrossOrigin(origins = "http://localhost:5173")
-@RequestMapping("/voteOptions")
+@CrossOrigin(origins = "http://localhost:5173")
+@RequestMapping("/polls/{pollId}/voteOptions")
 public class VoteOptionController {
 
     @Autowired
     private PollManager repo;
 
     @PostMapping
-    public ResponseEntity<VoteOption> createVoteOption(@RequestBody VoteOption voteOption) {
-        VoteOption createdVO = repo.createVoteOption(voteOption);
-        return new ResponseEntity<>(createdVO, HttpStatus.CREATED);
+    public ResponseEntity<VoteOption> createVoteOption(@PathVariable Integer pollId, @RequestBody VoteOption voteOption) {
+        try {
+            VoteOption createdVO = repo.createVoteOption(pollId, voteOption);
+            return new ResponseEntity<>(createdVO, HttpStatus.CREATED);
+        } catch (PollNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping("/{id}")
@@ -31,8 +36,8 @@ public class VoteOptionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<VoteOption>> getAllVoteOptions() {
-        return new ResponseEntity<>(repo.getAllVoteOptions(), HttpStatus.OK);
+    public ResponseEntity<List<VoteOption>> getAllVoteOptions(@PathVariable Integer pollId) {
+        return new ResponseEntity<>(repo.getAllVoteOptions(pollId), HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
@@ -42,8 +47,6 @@ public class VoteOptionController {
             return new ResponseEntity<>(updatedVoteOption, HttpStatus.OK);
         } catch (VoteOptionNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 

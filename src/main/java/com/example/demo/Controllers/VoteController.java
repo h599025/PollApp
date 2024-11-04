@@ -16,17 +16,18 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-//@CrossOrigin(origins = "http://localhost:5173")
-@RequestMapping("/votes")
+@CrossOrigin(origins = "http://localhost:5173")
+@RequestMapping("/polls/{pollId}/voteOptions/{voteOptionId}/votes")
 public class VoteController {
 
     @Autowired
     private PollManager repo;
 
     @PostMapping
-    public ResponseEntity<Vote> voteOnOption(@RequestBody Vote vote) {
+    public ResponseEntity<Vote> voteOnOption(@PathVariable String username, @PathVariable Integer pollId,
+                                             @PathVariable Integer voteOptionId, @RequestBody Vote vote) {
         try {
-            Vote newVote = repo.voteOnOption(vote.getUsername(), vote.getPollId(), vote.getVoteOptionId(), vote.getPublishedAt());
+            Vote newVote = repo.voteOnOption(username, pollId, voteOptionId, vote.getPublishedAt());
             return new ResponseEntity<>(newVote, HttpStatus.CREATED);
         } catch (UserNotFoundException | PollNotFoundException | VoteOptionNotFoundException | IllegalStateException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -40,8 +41,8 @@ public class VoteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Vote>> getAllVotes() {
-        return new ResponseEntity<>(repo.getAllVotes(), HttpStatus.OK);
+    public ResponseEntity<List<Vote>> getAllVotesForPoll(@PathVariable Integer pollId) {
+        return new ResponseEntity<>(repo.getAllVotesForPoll(pollId), HttpStatus.OK);
     }
 
     @PutMapping("/{id}")

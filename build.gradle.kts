@@ -19,6 +19,7 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-amqp") // RabbitMQ
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
@@ -27,6 +28,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation ("org.thymeleaf.extras:thymeleaf-extras-springsecurity6:3.1.2.RELEASE")
 	testImplementation ("org.springframework.security:spring-security-test")
+	implementation ("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation ("org.springframework.boot:spring-boot-starter-data-mongodb")
+	runtimeOnly ("com.h2database:h2")
 }
 
 tasks.withType<Test> {

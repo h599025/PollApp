@@ -2,267 +2,177 @@ package com.example.demo.Managers;
 
 import com.example.demo.Exceptions.*;
 import com.example.demo.Models.*;
+import com.example.demo.Repositories.PollRepository;
+import com.example.demo.Repositories.UserRepository;
+import com.example.demo.Repositories.VoteOptionRepository;
+import com.example.demo.Repositories.VoteRepository;
+import com.example.demo.messaging.MessagePublisher;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
-
+import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
-@Component
+@Service
 public class PollManager {
 
-    private Map<String, User> users = new HashMap<>();
-    private Map<Integer, Poll> polls = new HashMap<>();
-    private Map<Integer, Vote> votes = new HashMap<>();
-    private Map<Integer, VoteOption> voteOptions = new HashMap<>();
-
-    private Integer nextPollId = 0;
-    private Integer nextVoteId = 0;
-    private Integer nextVoteOptionId = 0;
-
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PollRepository pollRepository;
+    @Autowired
+    private VoteOptionRepository voteOptionRepository;
+    @Autowired
+    private VoteRepository voteRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    public User save(User user) {
-        if (users.containsKey(user.getUsername())) {
-            throw new IllegalArgumentException("Username '" + user.getUsername() + "' is already taken.");
-        }
-        users.put(user.getUsername(), user);
-        return user;
-    }
+    @Autowired
+    private MessagePublisher messagePublisher;
 
     // User CRUDs
     public User createUser(User user) {
-        if (users.containsKey(user.getUsername())) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new UserNotFoundException("Username '" + user.getUsername() + "' is already taken.");
         }
         // Hash the password before saving the user
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        users.put(user.getUsername(), user);
-        return user;
+        return userRepository.save(user);
     }
 
     public User getUser(String username) {
-        return users.get(username);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found."));
     }
 
     public List<User> getAllUsers() {
-        return new ArrayList<>(users.values());
+        return userRepository.findAll();
     }
 
     public User updateUser(String username, User updatedUser) {
-        User existingUser = users.get(username);
-        if (existingUser == null) {
-            throw new UserNotFoundException("User not found.");
-        }
-
-        users.remove(username);
-
+        User existingUser = getUser(username);
         existingUser.setUsername(updatedUser.getUsername());
         existingUser.setEmail(updatedUser.getEmail());
-
-        users.put(existingUser.getUsername(), existingUser);
-
-        return existingUser;
+        return userRepository.save(existingUser);
     }
 
     public void deleteUser(String username) {
-        users.remove(username);
+        User user = getUser(username);
+        userRepository.delete(user);
     }
 
 
     // Poll CRUDs
     public Poll createPoll(Poll poll) {
-        if (!users.containsKey(poll.getCreatorUsername())) {
-            throw new InvalidUsername("Username '" + poll.getCreatorUsername() + "' does not exist.");
-        }
-
-        poll.setPollId(nextPollId++);
-        polls.put(poll.getPollId(), poll);
-
-        if (poll.getVoteOptions() != null && !poll.getVoteOptions().isEmpty()) {
-            List<VoteOption> optionsCopy = new ArrayList<>(poll.getVoteOptions());
-            for (VoteOption option : optionsCopy) {
-                option.setPollId(poll.getPollId());
-                createVoteOption(option);
-            }
-        }
-
-        return poll;
+        poll.setPollId(null); // Ensures a new poll ID
+        return pollRepository.save(poll);
     }
 
     public Poll getPoll(Integer id) {
-        Poll poll = polls.get(id);
-        if (poll == null) {
-            throw new PollNotFoundException("Poll not found.");
-        }
-        return poll;
+        return pollRepository.findById(id)
+                .orElseThrow(() -> new PollNotFoundException("Poll not found."));
     }
 
     public List<Poll> getAllPolls() {
-        return new ArrayList<>(polls.values());
+        return pollRepository.findAll();
     }
 
     public Poll updatePoll(Integer id, Poll updatedPoll) {
-        Poll existingPoll = polls.get(id);
-        if (existingPoll == null) {
-            throw new PollNotFoundException("Poll not found.");
-        }
-
-        existingPoll.setQuestion(updatedPoll.getQuestion());
-        existingPoll.setValidUntil(updatedPoll.getValidUntil());
-
-        polls.put(id, existingPoll);
-        return existingPoll;
+        Poll poll = getPoll(id);
+        poll.setQuestion(updatedPoll.getQuestion());
+        poll.setValidUntil(updatedPoll.getValidUntil());
+        return pollRepository.save(poll);
     }
 
     public void deletePoll(Integer id) {
-        if (!polls.containsKey(id)) {
-            throw new PollNotFoundException("Poll not found.");
-        }
-
-        polls.remove(id);
-
-        List<Integer> voteOptionIds = voteOptions.values().stream()
-                .filter(voteOption -> voteOption.getPollId().equals(id))
-                .map(VoteOption::getVoteOptionId)
-                .collect(Collectors.toList());
-
-        for (Integer voteOptionId : voteOptionIds) {
-            voteOptions.remove(voteOptionId);
-
-            votes.entrySet().removeIf(entry -> entry.getValue().getVoteOptionId().equals(voteOptionId));
-        }
+        pollRepository.deleteById(id);
     }
 
 
     // Vote CRUDs
+    @Transactional
     public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
-        User user = users.get(username);
-        if (user == null) {
-            throw new UserNotFoundException("User not found.");
+        User user = getUser(username);
+        Poll poll = getPoll(pollId);
+        VoteOption voteOption = getVoteOption(voteOptionId);
+
+        // Check if user has already voted on this poll
+        if (voteRepository.existsByPollIdAndUsername(pollId, username)) {
+            throw new IllegalStateException("User has already voted on this poll.");
         }
 
-        Poll poll = polls.get(pollId);
-        if (poll == null) {
-            throw new PollNotFoundException("Poll not found.");
-        }
+        Vote vote = new Vote(username, pollId, voteOption, publishedAt);
+        vote = voteRepository.save(vote);
 
-        VoteOption voteOption = voteOptions.get(voteOptionId);
-        if (voteOption == null || !poll.getVoteOptions().contains(voteOption)) {
-            throw new VoteOptionNotFoundException("Vote option not found for this poll.");
-        }
-
-        for (Vote existingVote : votes.values()) {
-            if (existingVote.getPollId().equals(pollId) && existingVote.getUsername().equals(user.getUsername())) {
-                throw new IllegalStateException("User has already voted on this poll.");
-            }
-        }
-
-        Vote newVote = new Vote(username, pollId, voteOptionId, publishedAt);
-        newVote.setVoteId(nextVoteId++);
-
-        voteOption.getVotes().add(newVote);
-        votes.put(newVote.getVoteId(), newVote);
-
-        return newVote;
+        publishAggregatedData(pollId);
+        return vote;
     }
 
     public Vote getVote(Integer id) {
-        return votes.get(id);
+        return voteRepository.findById(id)
+                .orElseThrow(() -> new VoteNotFoundException("Vote not found."));
     }
 
-    public List<Vote> getAllVotes() {
-        return new ArrayList<>(votes.values());
+    public List<Vote> getAllVotesForPoll(Integer pollId) {
+        return voteRepository.findByPollId(pollId);
     }
 
     public Vote updateVote(Integer id, Vote updatedVote) {
-        Vote existingVote = votes.get(id);
-        if (existingVote == null) {
-            throw new VoteNotFoundException("Vote not found.");
-        }
-
-        if (!existingVote.getVoteOptionId().equals(updatedVote.getVoteOptionId()) &&
-                existingVote.getPollId().equals(updatedVote.getPollId())) {
-
-            removeVoteFromOption(existingVote);
-
-            VoteOption newOption = voteOptions.get(updatedVote.getVoteOptionId());
-            if (newOption == null) {
-                throw new VoteOptionNotFoundException("Vote option not found.");
-            }
-            existingVote.setVoteOptionId(updatedVote.getVoteOptionId());
-            existingVote.setPublishedAt(updatedVote.getPublishedAt());
-            newOption.getVotes().add(existingVote);
-        } else {
-            existingVote.setPublishedAt(updatedVote.getPublishedAt());
-        }
-
-        votes.put(id, existingVote);
-        return existingVote;
+        Vote existingVote = getVote(id);
+        existingVote.setVoteOption(updatedVote.getVoteOption());
+        existingVote.setPublishedAt(updatedVote.getPublishedAt());
+        return voteRepository.save(existingVote);
     }
 
     public void deleteVote(Integer id) {
-        Vote existingVote = votes.get(id);
-        if (existingVote != null) {
-            removeVoteFromOption(existingVote);
-            votes.remove(id);
-        }
-    }
-
-    public void removeVoteFromOption(Vote existingVote) {
-        VoteOption currentOption = voteOptions.get(existingVote.getVoteOptionId());
-        if (currentOption != null) {
-            currentOption.getVotes().removeIf(vote -> vote.getVoteId().equals(existingVote.getVoteId()));
-        }
+        Vote existingVote = getVote(id);
+        voteRepository.delete(existingVote);
     }
 
 
     // VoteOption CRUDs
-    public VoteOption createVoteOption(VoteOption voteOption) {
-        Poll poll = polls.get(voteOption.getPollId());
-        if (poll == null) {
-            throw new PollNotFoundException("Poll not found with ID: " + voteOption.getPollId());
-        }
-
-        voteOption.setVoteOptionId(nextVoteOptionId++);
-        voteOptions.put(voteOption.getVoteOptionId(), voteOption);
-
-        return voteOption;
+    public VoteOption createVoteOption(Integer pollId, VoteOption voteOption) {
+        Poll poll = getPoll(pollId);
+        voteOption.setPoll(poll);
+        return voteOptionRepository.save(voteOption);
     }
 
-    public VoteOption getVoteOption(Integer id) { return voteOptions.get(id); }
+    public VoteOption getVoteOption(Integer id) {
+        return voteOptionRepository.findById(id)
+                .orElseThrow(() -> new VoteOptionNotFoundException("Vote option not found."));
+    }
 
-    public List<VoteOption> getAllVoteOptions() {
-        return new ArrayList<>(voteOptions.values());
+    public List<VoteOption> getAllVoteOptions(Integer pollId) {
+        return voteOptionRepository.findByPoll_PollId(pollId);
     }
 
     public VoteOption updateVoteOption(Integer voteOptionId, VoteOption updatedVoteOption) {
-        VoteOption existingVoteOption = voteOptions.get(voteOptionId);
-        if (existingVoteOption == null) {
-            throw new VoteOptionNotFoundException("Vote option not found.");
-        }
-
+        VoteOption existingVoteOption = getVoteOption(voteOptionId);
         existingVoteOption.setCaption(updatedVoteOption.getCaption());
         existingVoteOption.setPresentationOrder(updatedVoteOption.getPresentationOrder());
-
-        voteOptions.put(voteOptionId, existingVoteOption);
-        return existingVoteOption;
+        return voteOptionRepository.save(existingVoteOption);
     }
 
     public void deleteVoteOption(Integer voteOptionId) {
-        VoteOption voteOption = voteOptions.remove(voteOptionId);
-        if (voteOption == null) {
-            throw new VoteOptionNotFoundException("Vote option not found.");
+        VoteOption voteOption = getVoteOption(voteOptionId);
+        voteOptionRepository.delete(voteOption);
+    }
+
+
+    private void publishAggregatedData(Integer pollId) {
+        Poll poll = getPoll(pollId);
+
+        // Create a map to hold vote counts for each option
+        Map<String, Long> optionVoteCounts = new HashMap<>();
+        for (VoteOption option : poll.getVoteOptions()) {
+            long voteCount = voteRepository.countByVoteOption_VoteOptionId(option.getVoteOptionId());
+            optionVoteCounts.put(option.getCaption(), voteCount);
         }
 
-        votes.entrySet().removeIf(entry -> entry.getValue().getVoteOptionId().equals(voteOptionId));
+        // Now pass the map as the third argument
+        AggregatedPollData aggregatedData = new AggregatedPollData(poll.getPollId(), poll.getQuestion(), optionVoteCounts);
 
-        Poll parentPoll = polls.get(voteOption.getPollId());
-        if (parentPoll != null) {
-            parentPoll.getVoteOptions().removeIf(vo -> vo.getVoteOptionId().equals(voteOptionId));
-        }
+        // Publish to RabbitMQ
+        messagePublisher.publish(aggregatedData);
     }
 }
