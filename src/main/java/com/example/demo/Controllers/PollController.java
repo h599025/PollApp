@@ -19,7 +19,7 @@ public class PollController {
     @Autowired
     private PollManager repo;
 
-    @PostMapping
+    @PostMapping()
     public ResponseEntity<Poll> createPoll(@RequestBody Poll poll) {
         Poll createdPoll = repo.createPoll(poll);
         return new ResponseEntity<>(createdPoll, HttpStatus.CREATED);

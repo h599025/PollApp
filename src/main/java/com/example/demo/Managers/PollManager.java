@@ -33,11 +33,21 @@ public class PollManager {
     // User CRUDs
     public User createUser(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new UserNotFoundException("Username '" + user.getUsername() + "' is already taken.");
+            throw new IllegalArgumentException("Username '" + user.getUsername() + "' is already taken.");
         }
         // Hash the password before saving the user
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
+    }
+
+    public boolean authenticateUser(String username, String password) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            return passwordEncoder.matches(password, user.getPassword());
+        } else {
+            throw new UserNotFoundException("User not found.");
+        }
     }
 
     public User getUser(String username) {

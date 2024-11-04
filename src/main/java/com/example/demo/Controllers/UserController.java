@@ -18,12 +18,6 @@ public class UserController {
     @Autowired
     private PollManager repo;
 
-    @PostMapping()
-    public ResponseEntity<Void> registerUser(@RequestBody User user) {
-        repo.createUser(user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
     @GetMapping("/{username}")
     public ResponseEntity<User> getUser(@PathVariable String username) {
         User user = repo.getUser(username);

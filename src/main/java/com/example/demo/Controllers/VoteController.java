@@ -23,7 +23,7 @@ public class VoteController {
     @Autowired
     private PollManager repo;
 
-    @PostMapping
+    @PostMapping()
     public ResponseEntity<Vote> voteOnOption(@PathVariable String username, @PathVariable Integer pollId,
                                              @PathVariable Integer voteOptionId, @RequestBody Vote vote) {
         try {

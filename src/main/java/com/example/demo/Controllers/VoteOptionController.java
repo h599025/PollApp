@@ -19,7 +19,7 @@ public class VoteOptionController {
     @Autowired
     private PollManager repo;
 
-    @PostMapping
+    @PostMapping()
     public ResponseEntity<VoteOption> createVoteOption(@PathVariable Integer pollId, @RequestBody VoteOption voteOption) {
         try {
             VoteOption createdVO = repo.createVoteOption(pollId, voteOption);
