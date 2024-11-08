@@ -28,7 +28,7 @@ public class AuthController {
 
             pollManager.createUser(user);
             response.put("message", "User registered successfully!");
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(user);
         } catch (IllegalArgumentException e) {
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);

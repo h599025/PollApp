@@ -63,6 +63,7 @@ public class PollManager {
         User existingUser = getUser(username);
         existingUser.setUsername(updatedUser.getUsername());
         existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword())); // Testng
         return userRepository.save(existingUser);
     }
 
