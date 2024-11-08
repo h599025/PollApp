@@ -7,8 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
-@CrossOrigin(origins = "http://localhost:5173 ")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/auth")
 public class AuthController {
 
@@ -18,11 +21,14 @@ public class AuthController {
     // Endpoint for registrering av bruker
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
+        Map<String, String> response = new HashMap<>();
         try {
-            User newUser = pollManager.createUser(user);
-            return ResponseEntity.ok("User registered successfully!");
+            pollManager.createUser(user);
+            response.put("message", "User registered successfully!");
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 

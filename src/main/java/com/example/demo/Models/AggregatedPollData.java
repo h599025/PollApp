@@ -12,7 +12,7 @@ public class AggregatedPollData {
 
     private Integer pollId;
     private String question;
-    private Map<String, Long> optionVoteCounts; // Option captions with vote counts
+    private Map<String, Long> optionVoteCounts;
 
     public AggregatedPollData(Integer pollId, String question, Map<String, Long> optionVoteCounts) {
         this.pollId = pollId;
@@ -20,13 +20,7 @@ public class AggregatedPollData {
         this.optionVoteCounts = optionVoteCounts;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    // Getters and setters
 
     public Integer getPollId() {
         return pollId;

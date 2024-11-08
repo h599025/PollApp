@@ -13,13 +13,13 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:5173")
-@RequestMapping("/polls/{pollId}/voteOptions")
+@RequestMapping("/voteOptions")
 public class VoteOptionController {
 
     @Autowired
     private PollManager repo;
 
-    @PostMapping()
+    @PostMapping("/polls/{pollId}")
     public ResponseEntity<VoteOption> createVoteOption(@PathVariable Integer pollId, @RequestBody VoteOption voteOption) {
         try {
             VoteOption createdVO = repo.createVoteOption(pollId, voteOption);
@@ -35,7 +35,7 @@ public class VoteOptionController {
         return new ResponseEntity<>(voteOption, HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/polls/{pollId}")
     public ResponseEntity<List<VoteOption>> getAllVoteOptions(@PathVariable Integer pollId) {
         return new ResponseEntity<>(repo.getAllVoteOptions(pollId), HttpStatus.OK);
     }

@@ -1,5 +1,6 @@
 package com.example.demo.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -8,6 +9,7 @@ import java.time.Instant;
 public class Vote {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer voteId;
 
     private String username;
@@ -15,6 +17,7 @@ public class Vote {
 
     @ManyToOne
     @JoinColumn(name = "vote_option_id", nullable = false)
+    @JsonIgnore
     private VoteOption voteOption;
 
     private Instant publishedAt;

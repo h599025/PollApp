@@ -1,5 +1,6 @@
 package com.example.demo.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,10 +10,12 @@ import java.util.List;
 public class VoteOption {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer voteOptionId;
 
     @ManyToOne
     @JoinColumn(name = "pollId", nullable = false)
+    @JsonIgnore
     private Poll poll;
 
     private String caption;
