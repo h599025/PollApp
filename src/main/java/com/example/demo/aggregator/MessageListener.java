@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 @Component
 public class MessageListener {
-
     private static final Logger logger = LoggerFactory.getLogger(MessageListener.class);
 
     @Autowired

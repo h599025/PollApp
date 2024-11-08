@@ -97,22 +97,49 @@ public class PollManager {
         pollRepository.deleteById(id);
     }
 
-    // Vote CRUDs
+    /*
+     * // Vote CRUDs
+     * 
+     * @Transactional
+     * public Vote voteOnOption(String username, Integer pollId, Integer
+     * voteOptionId, Instant publishedAt) {
+     * User user = getUser(username);
+     * Poll poll = getPoll(pollId);
+     * VoteOption voteOption = getVoteOption(voteOptionId);
+     * 
+     * // Check if user has already voted on this poll
+     * if (voteRepository.existsByPollIdAndUsername(pollId, username)) {
+     * throw new IllegalStateException("User has already voted on this poll.");
+     * }
+     * 
+     * Vote vote = new Vote(username, pollId, voteOption, publishedAt);
+     * vote = voteRepository.save(vote);
+     * 
+     * publishAggregatedData(pollId);
+     * return vote;
+     * }
+     */
     @Transactional
     public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
-        User user = getUser(username);
-        Poll poll = getPoll(pollId);
-        VoteOption voteOption = getVoteOption(voteOptionId);
+        User user = getUser(username); // Ensure user exists
+        Poll poll = getPoll(pollId); // Ensure poll exists
+        VoteOption voteOption = getVoteOption(voteOptionId); // Ensure vote option exists
+
+        // Validate that the voteOption belongs to the poll
+        if (!voteOption.getPoll().getPollId().equals(pollId)) {
+            throw new IllegalStateException("VoteOption does not belong to the specified Poll.");
+        }
 
         // Check if user has already voted on this poll
         if (voteRepository.existsByPollIdAndUsername(pollId, username)) {
             throw new IllegalStateException("User has already voted on this poll.");
         }
 
+        // Create the vote and save it
         Vote vote = new Vote(username, pollId, voteOption, publishedAt);
         vote = voteRepository.save(vote);
 
-        publishAggregatedData(pollId);
+        publishAggregatedData(pollId); // Aggregate data for analytics
         return vote;
     }
 
