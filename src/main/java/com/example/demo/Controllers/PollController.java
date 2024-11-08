@@ -4,6 +4,8 @@ import com.example.demo.Exceptions.PollNotFoundException;
 import com.example.demo.Managers.PollManager;
 import com.example.demo.Models.Poll;
 import com.example.demo.Models.Vote;
+
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +19,15 @@ import java.util.List;
 public class PollController {
 
     @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Autowired
     private PollManager repo;
 
     @PostMapping()
     public ResponseEntity<Poll> createPoll(@RequestBody Poll poll) {
         Poll createdPoll = repo.createPoll(poll);
+        // rabbitTemplate.convertAndSend("pollQueue", poll.getQuestion());
         return new ResponseEntity<>(createdPoll, HttpStatus.CREATED);
     }
 

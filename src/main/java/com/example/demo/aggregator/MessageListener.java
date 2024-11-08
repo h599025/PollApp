@@ -14,7 +14,7 @@ public class MessageListener {
     @Autowired
     private PollAggregator pollAggregator;
 
-    @RabbitListener(queues = "testqueue")
+    @RabbitListener(queues = "pollQueue")
     public void listen(String message) {
         try {
             logger.info("Received message: {}", message);
