@@ -63,6 +63,7 @@ public class PollManager {
         User existingUser = getUser(username);
         existingUser.setUsername(updatedUser.getUsername());
         existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword())); // Testng
         return userRepository.save(existingUser);
     }
 
@@ -98,26 +99,26 @@ public class PollManager {
         pollRepository.deleteById(id);
     }
 
-/*
-    // Vote CRUDs
-    @Transactional
-    public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
-        User user = getUser(username);
-        Poll poll = getPoll(pollId);
-        VoteOption voteOption = getVoteOption(voteOptionId);
+    /*
+        // Vote CRUDs
+        @Transactional
+        public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
+            User user = getUser(username);
+            Poll poll = getPoll(pollId);
+            VoteOption voteOption = getVoteOption(voteOptionId);
 
-        // Check if user has already voted on this poll
-        if (voteRepository.existsByPollIdAndUsername(pollId, username)) {
-            throw new IllegalStateException("User has already voted on this poll.");
+            // Check if user has already voted on this poll
+            if (voteRepository.existsByPollIdAndUsername(pollId, username)) {
+                throw new IllegalStateException("User has already voted on this poll.");
+            }
+
+            Vote vote = new Vote(username, pollId, voteOption, publishedAt);
+            vote = voteRepository.save(vote);
+
+            publishAggregatedData(pollId);
+            return vote;
         }
-
-        Vote vote = new Vote(username, pollId, voteOption, publishedAt);
-        vote = voteRepository.save(vote);
-
-        publishAggregatedData(pollId);
-        return vote;
-    }
-*/
+    */
     @Transactional
     public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
         User user = getUser(username);  // Ensure user exists

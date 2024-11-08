@@ -22,18 +22,7 @@ public class VoteController {
 
     @Autowired
     private PollManager repo;
-/*
-    @PostMapping("/voteOptions/{voteOptionId}/polls/{pollId}/users/{username}")
-    public ResponseEntity<Vote> voteOnOption(@PathVariable String username, @PathVariable Integer pollId,
-                                             @PathVariable Integer voteOptionId, @RequestBody Vote vote) {
-        try {
-            Vote newVote = repo.voteOnOption(username, pollId, voteOptionId, vote.getPublishedAt());
-            return new ResponseEntity<>(newVote, HttpStatus.CREATED);
-        } catch (UserNotFoundException | PollNotFoundException | VoteOptionNotFoundException | IllegalStateException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-*/
+
     @PostMapping("/voteOptions/{voteOptionId}/polls/{pollId}/users/{username}")
     public ResponseEntity<Vote> voteOnOption(@PathVariable String username, @PathVariable Integer pollId,
                                              @PathVariable Integer voteOptionId, @RequestBody Vote vote) {

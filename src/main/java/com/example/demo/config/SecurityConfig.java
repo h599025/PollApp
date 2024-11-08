@@ -27,8 +27,8 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        //.requestMatchers("/users/**", "/auth/**", "/polls/**", "/voteOptions/**", "/votes/**").permitAll()
-                        .anyRequest().permitAll()
+                                //.requestMatchers("/users/**", "/auth/**", "/polls/**", "/voteOptions/**", "/votes/**").permitAll()
+                                .anyRequest().permitAll()
                         //.anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
