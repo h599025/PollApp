@@ -23,6 +23,9 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         Map<String, String> response = new HashMap<>();
         try {
+            // User newUser = pollManager.createUser(user); Før
+            // return ResponseEntity.ok(newUser); Før
+
             pollManager.createUser(user);
             response.put("message", "User registered successfully!");
             return ResponseEntity.ok(user);
@@ -35,14 +38,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User loginRequest) {
         try {
-            boolean isAuthenticated = pollManager.authenticateUser(loginRequest.getUsername(), loginRequest.getPassword());
+            boolean isAuthenticated = pollManager.authenticateUser(loginRequest.getUsername(),
+                    loginRequest.getPassword());
             if (isAuthenticated) {
-                return ResponseEntity.ok("Login successful!");
+                return ResponseEntity.ok(loginRequest);
             } else {
                 return ResponseEntity.status(401).body("Invalid credentials.");
             }
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(404).body("Failed to login");
         }
     }
 }

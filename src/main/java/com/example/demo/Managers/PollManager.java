@@ -99,26 +99,26 @@ public class PollManager {
         pollRepository.deleteById(id);
     }
 
-    /*
-        // Vote CRUDs
-        @Transactional
-        public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
-            User user = getUser(username);
-            Poll poll = getPoll(pollId);
-            VoteOption voteOption = getVoteOption(voteOptionId);
+/*
+    // Vote CRUDs
+    @Transactional
+    public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
+        User user = getUser(username);
+        Poll poll = getPoll(pollId);
+        VoteOption voteOption = getVoteOption(voteOptionId);
 
-            // Check if user has already voted on this poll
-            if (voteRepository.existsByPollIdAndUsername(pollId, username)) {
-                throw new IllegalStateException("User has already voted on this poll.");
-            }
-
-            Vote vote = new Vote(username, pollId, voteOption, publishedAt);
-            vote = voteRepository.save(vote);
-
-            publishAggregatedData(pollId);
-            return vote;
+        // Check if user has already voted on this poll
+        if (voteRepository.existsByPollIdAndUsername(pollId, username)) {
+            throw new IllegalStateException("User has already voted on this poll.");
         }
-    */
+
+        Vote vote = new Vote(username, pollId, voteOption, publishedAt);
+        vote = voteRepository.save(vote);
+
+        publishAggregatedData(pollId);
+        return vote;
+    }
+*/
     @Transactional
     public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
         User user = getUser(username);  // Ensure user exists
@@ -152,30 +152,12 @@ public class PollManager {
         return voteRepository.findByPollId(pollId);
     }
 
-    public Vote updateVote(Integer id, Integer newId, Vote updatedVote) {
-        // Retrieve the existing vote
+    public Vote updateVote(Integer id, Vote updatedVote) {
         Vote existingVote = getVote(id);
-
-        // Retrieve the new VoteOption using newId
-        VoteOption newVoteOption = voteOptionRepository.findById(newId)
-                .orElseThrow(() -> new VoteOptionNotFoundException("Vote option not found."));
-
-        // Set the new VoteOption
-        existingVote.setVoteOption(newVoteOption);
-
-        // Update other properties from the request body if provided
-        if (updatedVote.getPublishedAt() != null) {
-            existingVote.setPublishedAt(updatedVote.getPublishedAt());
-        }
-
-        // Save and return the updated vote
-        Vote savedVote = voteRepository.save(existingVote);
-
-        // Log to confirm the updated vote
-        System.out.println("Updated Vote with ID " + id + " to VoteOption " + savedVote.getVoteOption().getVoteOptionId());
-        return savedVote;
+        existingVote.setVoteOption(updatedVote.getVoteOption());
+        existingVote.setPublishedAt(updatedVote.getPublishedAt());
+        return voteRepository.save(existingVote);
     }
-
 
     public void deleteVote(Integer id) {
         Vote existingVote = getVote(id);
