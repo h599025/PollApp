@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173 ")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/auth")
 public class AuthController {
 
@@ -20,7 +20,7 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         try {
             User newUser = pollManager.createUser(user);
-            return ResponseEntity.ok("User registered successfully!");
+            return ResponseEntity.ok(newUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -29,14 +29,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User loginRequest) {
         try {
-            boolean isAuthenticated = pollManager.authenticateUser(loginRequest.getUsername(), loginRequest.getPassword());
+            boolean isAuthenticated = pollManager.authenticateUser(loginRequest.getUsername(),
+                    loginRequest.getPassword());
             if (isAuthenticated) {
-                return ResponseEntity.ok("Login successful!");
+                return ResponseEntity.ok(loginRequest);
             } else {
                 return ResponseEntity.status(401).body("Invalid credentials.");
             }
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(404).body("Failed to login");
         }
     }
 }

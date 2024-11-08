@@ -71,7 +71,6 @@ public class PollManager {
         userRepository.delete(user);
     }
 
-
     // Poll CRUDs
     public Poll createPoll(Poll poll) {
         poll.setPollId(null); // Ensures a new poll ID
@@ -97,7 +96,6 @@ public class PollManager {
     public void deletePoll(Integer id) {
         pollRepository.deleteById(id);
     }
-
 
     // Vote CRUDs
     @Transactional
@@ -139,7 +137,6 @@ public class PollManager {
         voteRepository.delete(existingVote);
     }
 
-
     // VoteOption CRUDs
     public VoteOption createVoteOption(Integer pollId, VoteOption voteOption) {
         Poll poll = getPoll(pollId);
@@ -168,7 +165,6 @@ public class PollManager {
         voteOptionRepository.delete(voteOption);
     }
 
-
     private void publishAggregatedData(Integer pollId) {
         Poll poll = getPoll(pollId);
 
@@ -180,7 +176,8 @@ public class PollManager {
         }
 
         // Now pass the map as the third argument
-        AggregatedPollData aggregatedData = new AggregatedPollData(poll.getPollId(), poll.getQuestion(), optionVoteCounts);
+        AggregatedPollData aggregatedData = new AggregatedPollData(poll.getPollId(), poll.getQuestion(),
+                optionVoteCounts);
 
         // Publish to RabbitMQ
         messagePublisher.publish(aggregatedData);
