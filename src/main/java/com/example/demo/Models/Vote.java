@@ -40,7 +40,11 @@ public class Vote {
 
     public String getUsername() { return username; }
 
+    public void setUsername(String username) { this.username = username; }
+
     public Integer getPollId() { return pollId; }
+
+    public void setPollId(Integer pollId) { this.pollId = pollId; }
 
     public Instant getPublishedAt() {
         return publishedAt;

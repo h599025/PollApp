@@ -151,12 +151,30 @@ public class PollManager {
         return voteRepository.findByPollId(pollId);
     }
 
-    public Vote updateVote(Integer id, Vote updatedVote) {
+    public Vote updateVote(Integer id, Integer newId, Vote updatedVote) {
+        // Retrieve the existing vote
         Vote existingVote = getVote(id);
-        existingVote.setVoteOption(updatedVote.getVoteOption());
-        existingVote.setPublishedAt(updatedVote.getPublishedAt());
-        return voteRepository.save(existingVote);
+
+        // Retrieve the new VoteOption using newId
+        VoteOption newVoteOption = voteOptionRepository.findById(newId)
+                .orElseThrow(() -> new VoteOptionNotFoundException("Vote option not found."));
+
+        // Set the new VoteOption
+        existingVote.setVoteOption(newVoteOption);
+
+        // Update other properties from the request body if provided
+        if (updatedVote.getPublishedAt() != null) {
+            existingVote.setPublishedAt(updatedVote.getPublishedAt());
+        }
+
+        // Save and return the updated vote
+        Vote savedVote = voteRepository.save(existingVote);
+
+        // Log to confirm the updated vote
+        System.out.println("Updated Vote with ID " + id + " to VoteOption " + savedVote.getVoteOption().getVoteOptionId());
+        return savedVote;
     }
+
 
     public void deleteVote(Integer id) {
         Vote existingVote = getVote(id);

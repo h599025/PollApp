@@ -60,10 +60,10 @@ public class VoteController {
         return new ResponseEntity<>(repo.getAllVotesForPoll(pollId), HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Vote> updateVote(@PathVariable Integer id, @RequestBody Vote vote) {
+    @PutMapping("/{id}/{newId}")
+    public ResponseEntity<Vote> updateVote(@PathVariable Integer id, @PathVariable Integer newId, @RequestBody Vote vote) {
         try {
-            Vote updatedVote = repo.updateVote(id, vote);
+            Vote updatedVote = repo.updateVote(id, newId, vote);
             return new ResponseEntity<>(updatedVote, HttpStatus.OK);
         } catch (VoteNotFoundException | VoteOptionNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

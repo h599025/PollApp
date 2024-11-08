@@ -2,10 +2,12 @@ package com.example.demo.Models;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.io.Serializable;
 import java.util.Map;
 
 @Document(collection = "pollAnalytics")
-public class AggregatedPollData {
+public class AggregatedPollData implements Serializable {
 
     @Id
     private String id;
