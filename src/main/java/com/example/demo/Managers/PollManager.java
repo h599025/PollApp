@@ -99,26 +99,6 @@ public class PollManager {
         pollRepository.deleteById(id);
     }
 
-/*
-    // Vote CRUDs
-    @Transactional
-    public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
-        User user = getUser(username);
-        Poll poll = getPoll(pollId);
-        VoteOption voteOption = getVoteOption(voteOptionId);
-
-        // Check if user has already voted on this poll
-        if (voteRepository.existsByPollIdAndUsername(pollId, username)) {
-            throw new IllegalStateException("User has already voted on this poll.");
-        }
-
-        Vote vote = new Vote(username, pollId, voteOption, publishedAt);
-        vote = voteRepository.save(vote);
-
-        publishAggregatedData(pollId);
-        return vote;
-    }
-*/
     @Transactional
     public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
         User user = getUser(username);  // Ensure user exists
@@ -153,26 +133,30 @@ public class PollManager {
     }
 
     public Vote updateVote(Integer id, Integer newId, Vote updatedVote) {
-        // Retrieve the existing vote
         Vote existingVote = getVote(id);
 
-        // Retrieve the new VoteOption using newId
-        VoteOption newVoteOption = voteOptionRepository.findById(newId)
-                .orElseThrow(() -> new VoteOptionNotFoundException("Vote option not found."));
+        // Log the initial state of the vote
+        System.out.println("Current Vote Option ID: " + existingVote.getVoteOption().getVoteOptionId());
 
         // Set the new VoteOption
+        VoteOption newVoteOption = voteOptionRepository.findById(newId)
+                .orElseThrow(() -> new VoteOptionNotFoundException("Vote option not found."));
         existingVote.setVoteOption(newVoteOption);
 
-        // Update other properties from the request body if provided
+        // Update additional fields if provided
         if (updatedVote.getPublishedAt() != null) {
             existingVote.setPublishedAt(updatedVote.getPublishedAt());
         }
 
-        // Save and return the updated vote
+        // Save the updated vote in H2
         Vote savedVote = voteRepository.save(existingVote);
 
-        // Log to confirm the updated vote
+        // Log the updated state of the vote
         System.out.println("Updated Vote with ID " + id + " to VoteOption " + savedVote.getVoteOption().getVoteOptionId());
+
+        // Publish updated aggregated data to RabbitMQ for MongoDB update
+        publishAggregatedData(savedVote.getPollId());
+
         return savedVote;
     }
 
@@ -212,19 +196,20 @@ public class PollManager {
 
 
     private void publishAggregatedData(Integer pollId) {
-        Poll poll = getPoll(pollId);
+        Poll poll = getPoll(pollId); // Fetch the latest poll data
 
-        // Create a map to hold vote counts for each option
+        // Create a map to hold updated vote counts for each option
         Map<String, Long> optionVoteCounts = new HashMap<>();
         for (VoteOption option : poll.getVoteOptions()) {
+            // Use the repository to fetch the exact count from the database for each VoteOption
             long voteCount = voteRepository.countByVoteOption_VoteOptionId(option.getVoteOptionId());
             optionVoteCounts.put(option.getCaption(), voteCount);
         }
 
-        // Now pass the map as the third argument
+        // Construct AggregatedPollData with the updated counts
         AggregatedPollData aggregatedData = new AggregatedPollData(poll.getPollId(), poll.getQuestion(), optionVoteCounts);
 
-        // Publish to RabbitMQ
+        // Publish the updated data to RabbitMQ
         messagePublisher.publish(aggregatedData);
     }
 }

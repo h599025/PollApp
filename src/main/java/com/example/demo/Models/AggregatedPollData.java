@@ -11,10 +11,12 @@ public class AggregatedPollData implements Serializable {
 
     @Id
     private String id;
-
     private Integer pollId;
     private String question;
     private Map<String, Long> optionVoteCounts;
+
+    // No-arg constructor for Jackson
+    public AggregatedPollData() {}
 
     public AggregatedPollData(Integer pollId, String question, Map<String, Long> optionVoteCounts) {
         this.pollId = pollId;

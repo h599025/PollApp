@@ -17,8 +17,7 @@ public class MessagePublisher {
     private String pollAnalyticsQueue;
 
     public void publish(AggregatedPollData data) {
-        // Convert and send the AggregatedPollData object to the specified queue
+        System.out.println("Publishing AggregatedPollData: " + data);
         rabbitTemplate.convertAndSend(pollAnalyticsQueue, data);
-        System.out.println("Published message to RabbitMQ: " + data);
     }
 }
