@@ -25,11 +25,12 @@ public class VoteController {
 
     @PostMapping("/voteOptions/{voteOptionId}/polls/{pollId}/users/{username}")
     public ResponseEntity<Vote> voteOnOption(@PathVariable String username, @PathVariable Integer pollId,
-                                             @PathVariable Integer voteOptionId, @RequestBody Vote vote) {
+            @PathVariable Integer voteOptionId, @RequestBody Vote vote) {
         try {
             Vote newVote = repo.voteOnOption(username, pollId, voteOptionId, vote.getPublishedAt());
             return new ResponseEntity<>(newVote, HttpStatus.CREATED);
-        } catch (UserNotFoundException | PollNotFoundException | VoteOptionNotFoundException | IllegalStateException e) {
+        } catch (UserNotFoundException | PollNotFoundException | VoteOptionNotFoundException
+                | IllegalStateException e) {
             e.printStackTrace(); // Log the exception stack trace
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -50,7 +51,8 @@ public class VoteController {
     }
 
     @PutMapping("/{id}/{newId}")
-    public ResponseEntity<Vote> updateVote(@PathVariable Integer id, @PathVariable Integer newId, @RequestBody Vote vote) {
+    public ResponseEntity<Vote> updateVote(@PathVariable Integer id, @PathVariable Integer newId,
+            @RequestBody Vote vote) {
         try {
             Vote updatedVote = repo.updateVote(id, newId, vote);
             return new ResponseEntity<>(updatedVote, HttpStatus.OK);
