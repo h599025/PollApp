@@ -121,8 +121,10 @@ public class PollManager {
         // Create the vote and save it
         Vote vote = new Vote(username, pollId, voteOption, publishedAt);
         vote = voteRepository.save(vote);
-
+        
+        System.out.println("BEFORE ERROR");
         publishAggregatedData(pollId); // Aggregate data for analytics
+        System.out.println("AFTER ERROR");
         return vote;
     }
 
@@ -209,6 +211,7 @@ public class PollManager {
             optionVoteCounts.put(option.getCaption(), voteCount);
         }
 
+        System.out.println("BEEEEEEEEEEEEEEFORE AGGREGATEPOLLDATA CLASS");
         // Construct AggregatedPollData with the updated counts
         AggregatedPollData aggregatedData = new AggregatedPollData(poll.getPollId(), poll.getQuestion(),
                 optionVoteCounts);
