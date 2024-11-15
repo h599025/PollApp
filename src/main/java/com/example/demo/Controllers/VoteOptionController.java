@@ -20,8 +20,13 @@ public class VoteOptionController {
     private PollManager repo;
 
     @PostMapping("/polls/{pollId}")
-    public ResponseEntity<VoteOption> createVoteOption(@PathVariable Integer pollId, @RequestBody VoteOption voteOption) {
+    public ResponseEntity<VoteOption> createVoteOption(@PathVariable Integer pollId,
+            @RequestBody VoteOption voteOption) {
+        System.out.println("POLL ID :: :: : " + pollId);
+        System.out.println("VOTE OPTIONS :: :: : " + voteOption);
         try {
+            System.out.println("POLL ID :: :: : " + pollId);
+            System.out.println("VOTE OPTIONS :: :: : " + voteOption);
             VoteOption createdVO = repo.createVoteOption(pollId, voteOption);
             return new ResponseEntity<>(createdVO, HttpStatus.CREATED);
         } catch (PollNotFoundException e) {

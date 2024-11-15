@@ -8,6 +8,7 @@ import com.example.demo.Managers.PollManager;
 import com.example.demo.Models.Vote;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,11 +26,18 @@ public class VoteController {
 
     @PostMapping("/voteOptions/{voteOptionId}/polls/{pollId}/users/{username}")
     public ResponseEntity<Vote> voteOnOption(@PathVariable String username, @PathVariable Integer pollId,
-                                             @PathVariable Integer voteOptionId, @RequestBody Vote vote) {
+            @PathVariable Integer voteOptionId, @RequestBody Vote vote) {
+        System.out.println("Received vote from username: " + username);
+        System.out.println("Poll ID: " + pollId + ", Vote Option ID: " + voteOptionId + ", published at; " + vote.getPublishedAt());
         try {
+            if (username == null || pollId == null || voteOptionId == null || vote.getPublishedAt() == null) {
+                System.out.println("Missing required fields in request.");
+                return new ResponseEntity<>(HttpStatusCode.valueOf(199));
+            }
             Vote newVote = repo.voteOnOption(username, pollId, voteOptionId, vote.getPublishedAt());
             return new ResponseEntity<>(newVote, HttpStatus.CREATED);
-        } catch (UserNotFoundException | PollNotFoundException | VoteOptionNotFoundException | IllegalStateException e) {
+        } catch (UserNotFoundException | PollNotFoundException | VoteOptionNotFoundException
+                | IllegalStateException e) {
             e.printStackTrace(); // Log the exception stack trace
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -50,7 +58,8 @@ public class VoteController {
     }
 
     @PutMapping("/{id}/{newId}")
-    public ResponseEntity<Vote> updateVote(@PathVariable Integer id, @PathVariable Integer newId, @RequestBody Vote vote) {
+    public ResponseEntity<Vote> updateVote(@PathVariable Integer id, @PathVariable Integer newId,
+            @RequestBody Vote vote) {
         try {
             Vote updatedVote = repo.updateVote(id, newId, vote);
             return new ResponseEntity<>(updatedVote, HttpStatus.OK);

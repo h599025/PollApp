@@ -24,15 +24,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(withDefaults())
-                .csrf(csrf -> csrf.disable())
+                .cors(withDefaults()) // Enables CORS
+                .csrf(csrf -> csrf.disable()) // Disables CSRF protection
                 .authorizeHttpRequests(authorize -> authorize
-                                //.requestMatchers("/users/**", "/auth/**", "/polls/**", "/voteOptions/**", "/votes/**").permitAll()
-                                .anyRequest().permitAll()
-                        //.anyRequest().authenticated()
+                        // Allow public access to specific endpoints
+                        .requestMatchers("/users/**", "/auth/**", "/polls/**", "/voteOptions/**", "/votes/**").permitAll()
+                        // Allow access to H2 Console
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .headers(headers -> headers
+                        // Disables X-Frame-Options to allow H2 Console frames
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(logout -> logout.permitAll());
+
         return http.build();
     }
 

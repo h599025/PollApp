@@ -27,6 +27,9 @@ public class PollController {
     @PostMapping()
     public ResponseEntity<Poll> createPoll(@RequestBody Poll poll) {
         Poll createdPoll = repo.createPoll(poll);
+        List<Poll> userPollList = repo.getAllPollsByCreator(poll.getCreatorUsername());
+        int pollId = userPollList.get(userPollList.size() - 1).getPollId();
+        createdPoll.setPollId(pollId);
         // rabbitTemplate.convertAndSend("pollQueue", poll.getQuestion());
         return new ResponseEntity<>(createdPoll, HttpStatus.CREATED);
     }
@@ -45,8 +48,15 @@ public class PollController {
         return new ResponseEntity<>(repo.getAllPolls(), HttpStatus.OK);
     }
 
+    @GetMapping("user/{creatorName}")
+    public ResponseEntity<List<Poll>> getAllPollsByCreator(@PathVariable String creatorName) {
+        return new ResponseEntity<>(repo.getAllPollsByCreator(creatorName), HttpStatus.OK);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Poll> updatePoll(@PathVariable Integer id, @RequestBody Poll poll) {
+        System.out.println("POLL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! "+poll);
+        System.out.println("Valid until: " + poll.getValidUntil());
         try {
             Poll updatedPoll = repo.updatePoll(id, poll);
             return new ResponseEntity<>(updatedPoll, HttpStatus.OK);

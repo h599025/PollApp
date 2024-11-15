@@ -72,11 +72,14 @@ public class PollManager {
         userRepository.delete(user);
     }
 
-
     // Poll CRUDs
     public Poll createPoll(Poll poll) {
-        poll.setPollId(null); // Ensures a new poll ID
+        // poll.setPollId(null); // Ensures a new poll ID
         return pollRepository.save(poll);
+    }
+
+    public List<Poll> getAllPollsByCreator(String creatorUsername) {
+        return pollRepository.findAllPollsByCreatorUsername(creatorUsername);
     }
 
     public Poll getPoll(Integer id) {
@@ -101,9 +104,9 @@ public class PollManager {
 
     @Transactional
     public Vote voteOnOption(String username, Integer pollId, Integer voteOptionId, Instant publishedAt) {
-        User user = getUser(username);  // Ensure user exists
-        Poll poll = getPoll(pollId);    // Ensure poll exists
-        VoteOption voteOption = getVoteOption(voteOptionId);  // Ensure vote option exists
+        User user = getUser(username); // Ensure user exists
+        Poll poll = getPoll(pollId); // Ensure poll exists
+        VoteOption voteOption = getVoteOption(voteOptionId); // Ensure vote option exists
 
         // Validate that the voteOption belongs to the poll
         if (!voteOption.getPoll().getPollId().equals(pollId)) {
@@ -118,8 +121,10 @@ public class PollManager {
         // Create the vote and save it
         Vote vote = new Vote(username, pollId, voteOption, publishedAt);
         vote = voteRepository.save(vote);
-
-        publishAggregatedData(pollId);  // Aggregate data for analytics
+        
+        System.out.println("BEFORE ERROR");
+        publishAggregatedData(pollId); // Aggregate data for analytics
+        System.out.println("AFTER ERROR");
         return vote;
     }
 
@@ -152,7 +157,8 @@ public class PollManager {
         Vote savedVote = voteRepository.save(existingVote);
 
         // Log the updated state of the vote
-        System.out.println("Updated Vote with ID " + id + " to VoteOption " + savedVote.getVoteOption().getVoteOptionId());
+        System.out.println(
+                "Updated Vote with ID " + id + " to VoteOption " + savedVote.getVoteOption().getVoteOptionId());
 
         // Publish updated aggregated data to RabbitMQ for MongoDB update
         publishAggregatedData(savedVote.getPollId());
@@ -164,7 +170,6 @@ public class PollManager {
         Vote existingVote = getVote(id);
         voteRepository.delete(existingVote);
     }
-
 
     // VoteOption CRUDs
     public VoteOption createVoteOption(Integer pollId, VoteOption voteOption) {
@@ -194,20 +199,22 @@ public class PollManager {
         voteOptionRepository.delete(voteOption);
     }
 
-
     private void publishAggregatedData(Integer pollId) {
         Poll poll = getPoll(pollId); // Fetch the latest poll data
 
         // Create a map to hold updated vote counts for each option
         Map<String, Long> optionVoteCounts = new HashMap<>();
         for (VoteOption option : poll.getVoteOptions()) {
-            // Use the repository to fetch the exact count from the database for each VoteOption
+            // Use the repository to fetch the exact count from the database for each
+            // VoteOption
             long voteCount = voteRepository.countByVoteOption_VoteOptionId(option.getVoteOptionId());
             optionVoteCounts.put(option.getCaption(), voteCount);
         }
 
+        System.out.println("BEEEEEEEEEEEEEEFORE AGGREGATEPOLLDATA CLASS");
         // Construct AggregatedPollData with the updated counts
-        AggregatedPollData aggregatedData = new AggregatedPollData(poll.getPollId(), poll.getQuestion(), optionVoteCounts);
+        AggregatedPollData aggregatedData = new AggregatedPollData(poll.getPollId(), poll.getQuestion(),
+                optionVoteCounts);
 
         // Publish the updated data to RabbitMQ
         messagePublisher.publish(aggregatedData);

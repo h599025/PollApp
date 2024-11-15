@@ -17,8 +17,8 @@ public class PollAggregator {
 
     public void aggregatePollData(String message) {
         // Parse the message and perform aggregation logic
-        Poll poll = new Poll("a", "a", null, null);
-        poll.setQuestion(message); // Example: set the question from the message
+        // Poll poll = new Poll("a", "a", null, null);
+        // poll.setQuestion(message); // Example: set the question from the message
         // pollRepository.save(poll);
     }
 }

@@ -23,7 +23,9 @@ public class Poll {
     private Instant publishedAt;
     private Instant validUntil;
 
-    public Poll() {}
+    public Poll() {
+    }
+
     public Poll(String creatorUsername, String question, Instant publishedAt, Instant validUntil) {
         this.creatorUsername = creatorUsername;
         this.question = question;
@@ -35,9 +37,17 @@ public class Poll {
         return pollId;
     }
 
-    public void setPollId(Integer pollId) { this.pollId = pollId; }
+    public void setPollId(Integer pollId) {
+        this.pollId = pollId;
+    }
 
-    public String getCreatorUsername() { return creatorUsername; }
+    public void setCreatorUsername(String creatorUsername) {
+        this.creatorUsername = creatorUsername;
+    }
+
+    public String getCreatorUsername() {
+        return creatorUsername;
+    }
 
     public String getQuestion() {
         return question;
@@ -63,7 +73,11 @@ public class Poll {
         this.validUntil = validUntil;
     }
 
-    public List<VoteOption> getVoteOptions() { return voteOptions; }
+    public List<VoteOption> getVoteOptions() {
+        return voteOptions;
+    }
 
-    public void setVoteOptions(List<VoteOption> voteOptions) { this.voteOptions = voteOptions; }
+    public void setVoteOptions(List<VoteOption> voteOptions) {
+        this.voteOptions = voteOptions;
+    }
 }
