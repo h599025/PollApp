@@ -27,7 +27,9 @@ public class SecurityConfig {
                 .cors(withDefaults()) // Enables CORS
                 .csrf(csrf -> csrf.disable()) // Disables CSRF protection
                 .authorizeHttpRequests(authorize -> authorize
-                        // Allow public access to specific endpoints
+                        // Allow public access to static resources and the root path
+                        .requestMatchers("/", "/index.html", "/assets/**", "/angularComponent/**", "/static/**").permitAll()
+                        // Allow public access to specific backend endpoints
                         .requestMatchers("/users/**", "/auth/**", "/polls/**", "/voteOptions/**", "/votes/**").permitAll()
                         // Allow access to H2 Console
                         .requestMatchers("/h2-console/**").permitAll()
