@@ -16,6 +16,6 @@ FROM openjdk:21-jdk-slim
 # Copy the built JAR from the builder stage
 COPY --from=builder /app.jar /app.jar
 
-EXPOSE 5173
+EXPOSE 5173 8080
 
 CMD ["java", "-jar", "app.jar"]
